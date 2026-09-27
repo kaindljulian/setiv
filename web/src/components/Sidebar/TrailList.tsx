@@ -4,7 +4,7 @@ import { useRowVirtualizer } from "@/hooks/useRowVirtualizer";
 import { cn } from "@/lib/cn";
 import { litLabel, trailReason } from "@/lib/format";
 import type { EventOf, SolverEvent } from "@/model/events";
-import type { SolverState } from "@/model/trail";
+import type { TrailEntry } from "@/model/trail";
 import { useCursor, useSource, useView } from "@/state/context";
 import { buildTrailRows } from "@/view/trailRows";
 import { useMemo, useRef } from "preact/hooks";
@@ -27,21 +27,22 @@ function assignmentAt(
     return ev.event === "decide" || ev.event === "propagate" ? ev : null;
 }
 
-export function TrailList({ state }: { state: SolverState }) {
+interface TrailListProps {
+    entries: readonly TrailEntry[];
+    empty: string;
+}
+
+export function TrailList({ entries, empty }: TrailListProps) {
     const view = useView();
     const cursor = useCursor();
     const run = useSource().run.value;
     const selected = view.selectedEvent.value;
 
-    const { rows, rowOf } = useMemo(
-        () => buildTrailRows(state.trail),
-        [state.trail],
-    );
+    const { rows, rowOf } = useMemo(() => buildTrailRows(entries), [entries]);
 
     const virtualizer = useRowVirtualizer(rows.length, rowHeight, {
         follow: true,
     });
-
 
     const scroll = view.trailScroll.value;
     const target =
@@ -59,15 +60,13 @@ export function TrailList({ state }: { state: SolverState }) {
             ? assignmentAt(run?.events, selected)
             : null;
 
-    const bannerRef = useRef<HTMLDivElement>(null);
 
-    useDismiss(bannerRef, offTrail !== null, () => view.select(null));
+    const panelRef = useRef<HTMLDivElement>(null);
+
+    useDismiss(panelRef, offTrail !== null, () => view.select(null));
 
     const banner = offTrail && selected !== null && (
-        <div
-            ref={bannerRef}
-            class="border-base-300 bg-base-100 flex shrink-0 items-center gap-2 border-b px-2 py-1 text-[11px]"
-        >
+        <div class="border-base-300 bg-base-100 flex shrink-0 items-center gap-2 border-b px-2 py-1 text-[11px]">
             <span class="text-base-content font-mono font-semibold">
                 {litLabel(offTrail.literal)} @{offTrail.level}
             </span>
@@ -83,17 +82,6 @@ export function TrailList({ state }: { state: SolverState }) {
             </button>
         </div>
     );
-
-    if (rows.length === 0) {
-        return (
-            <div class="flex h-full min-h-0 flex-col">
-                {banner}
-                <p class="text-base-content/40 px-2 py-2 text-xs">
-                    Nothing assigned at this step.
-                </p>
-            </div>
-        );
-    }
 
     const rendered = [];
 
@@ -120,7 +108,7 @@ export function TrailList({ state }: { state: SolverState }) {
         rendered.push(
             <div
                 key={row.key}
-                //onClick={() => view.select(entry.eventIndex)}
+                onClick={() => view.jumpToEvent(entry.eventIndex)}
                 class={cn(
                     "flex h-5 cursor-pointer items-center gap-2 border-l-2 px-2 font-mono text-xs whitespace-nowrap",
                     current
@@ -137,7 +125,10 @@ export function TrailList({ state }: { state: SolverState }) {
                 <span
                     onClick={
                         reasonId != null && reasonId >= 0
-                            ? () => view.revealClause(reasonId)
+                            ? (e) => {
+                                  e.stopPropagation();
+                                  view.revealClause(reasonId);
+                              }
                             : undefined
                     }
                     class={cn(
@@ -156,17 +147,21 @@ export function TrailList({ state }: { state: SolverState }) {
     }
 
     return (
-        <div class="flex h-full min-h-0 flex-col">
+        <div ref={panelRef} class="flex h-full min-h-0 flex-col">
             {banner}
 
-            <div
-                ref={virtualizer.ref}
-                class="min-h-0 flex-1 overflow-x-auto overflow-y-auto"
-            >
-                <div style={{ height: virtualizer.topPad }} />
-                {rendered}
-                <div style={{ height: virtualizer.bottomPad }} />
-            </div>
+            {rows.length === 0 ? (
+                <p class="text-base-content/40 px-2 py-2 text-xs">{empty}</p>
+            ) : (
+                <div
+                    ref={virtualizer.ref}
+                    class="min-h-0 flex-1 overflow-x-auto overflow-y-auto"
+                >
+                    <div style={{ height: virtualizer.topPad }} />
+                    {rendered}
+                    <div style={{ height: virtualizer.bottomPad }} />
+                </div>
+            )}
         </div>
     );
 }

@@ -55,7 +55,7 @@ export function SolverOptions({
 
     return (
         <details class="group min-w-0 flex-1">
-            <summary class="text-base-content/70 hover:text-base-content inline-flex cursor-pointer list-none items-center gap-1 text-xs">
+            <summary class="text-base-content/70 hover:bg-base-200 hover:text-base-content -mx-1 flex cursor-pointer list-none items-center gap-1 rounded px-1 py-2 text-xs">
                 <ChevronRight
                     size={13}
                     class="transition-transform group-open:rotate-90"

@@ -243,7 +243,7 @@ export function FileInput({ onSettled }: { onSettled?: () => void }) {
 
                     {dimacs && (
                         <div class="flex flex-col gap-1.5">
-                            <div class="flex items-baseline justify-between gap-2">
+                            <div class="flex items-center justify-between gap-2">
                                 <span class="text-base-content/60 min-w-0 text-xs">
                                     {tab === "dimacs" && uploaded?.note}
                                 </span>
@@ -251,7 +251,7 @@ export function FileInput({ onSettled }: { onSettled?: () => void }) {
                                     type="button"
                                     onClick={() => setShowDimacs(!showDimacs)}
                                     aria-expanded={showDimacs}
-                                    class="btn btn-ghost btn-xs gap-1 font-normal"
+                                    class="btn btn-xs gap-1 font-normal"
                                 >
                                     <Chevron open={showDimacs} />
                                     DIMACS

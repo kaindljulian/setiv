@@ -4,6 +4,7 @@ import {
     type ClauseSection,
 } from "@/model/clauseDatabase";
 import { type SolverRun } from "@/model/run";
+import { type SidebarFilter } from "@/view/sidebarFilter";
 import { batch, effect, signal, type ReadonlySignal } from "@preact/signals";
 import { type CursorStore } from "./cursorStore";
 
@@ -15,6 +16,8 @@ export type TabId = "graph" | "tree" | "formula" | "bcp" | "log";
  */
 export type TrailScroll = { to: "end" } | { to: "event"; event: number };
 export type SidebarSection = "trail" | ClauseSection;
+
+const noFilter: SidebarFilter = { varQuery: "", level: null, status: null };
 
 /**
  * whatis highlighted and what the user focussed
@@ -33,6 +36,10 @@ export interface ViewStore {
     selectedClauseId: ReadonlySignal<number | null>;
     select(eventIndex: number | null): void;
 
+    filter: ReadonlySignal<SidebarFilter>;
+    setFilter(patch: Partial<SidebarFilter>): void;
+    clearFilter(): void;
+
     trailScroll: ReadonlySignal<TrailScroll>;
     /** Fresh on every clause reveal, for the same reason as `trailScroll`. */
     clauseScroll: ReadonlySignal<object>;
@@ -43,7 +50,11 @@ export interface ViewStore {
     revealClause(clauseId: number): void;
     revealConflict(eventIndex: number): void;
 
+    // todo: combine into one method
+    /**move cursor and open tab */
     openEvent(eventIndex: number): void;
+    /** move cursor, dont switch tab */
+    jumpToEvent(eventIndex: number): void;
 }
 
 export function createViewStore(
@@ -57,14 +68,21 @@ export function createViewStore(
     const selectedClauseId = signal<number | null>(null);
     const trailScroll = signal<TrailScroll>({ to: "end" });
     const clauseScroll = signal<object>({});
+    const filter = signal<SidebarFilter>(noFilter);
 
     // A new run invalidates whatever was focused: the event indices are gone.
     effect(() => {
-        run.value;
+        // for handling cases where filtering while run is streamed in
+        const torndown = run.value === null;
+
         batch(() => {
             selectedEvent.value = null;
             selectedClauseId.value = null;
             trailScroll.value = { to: "end" };
+
+            if (torndown) {
+                filter.value = noFilter;
+            }
         });
     });
 
@@ -107,6 +125,21 @@ export function createViewStore(
         });
     };
 
+    const jumpToEvent = (eventIndex: number) => {
+        batch(() => {
+            cursor.jumpTo(eventIndex);
+            select(eventIndex);
+        });
+    };
+
+    const setFilter = (patch: Partial<SidebarFilter>) => {
+        filter.value = { ...filter.value, ...patch };
+    };
+
+    const clearFilter = () => {
+        filter.value = noFilter;
+    };
+
     const revealTrailEnd = () => {
         trailScroll.value = { to: "end" };
     };
@@ -126,9 +159,7 @@ export function createViewStore(
                 cursor.jumpTo(anchorStep);
             }
 
-            select(eventIndex);
-            sidebarSection.value = "trail";
-            trailScroll.value = { to: "event", event: eventIndex };
+            revealInTrail(eventIndex);
         });
     };
 
@@ -175,11 +206,11 @@ export function createViewStore(
                     showTab("tree");
                     revealInTrail(eventIndex);
                 });
-                return;
+                break;
             case "conflict":
             case "learn":
                 revealConflict(eventIndex);
-                return;
+                break;
             default:
                 batch(() => {
                     cursor.jumpTo(eventIndex);
@@ -200,6 +231,10 @@ export function createViewStore(
         selectedEvent,
         selectedClauseId,
         select,
+        jumpToEvent,
+        filter,
+        setFilter,
+        clearFilter,
         trailScroll,
         clauseScroll,
         revealTrailEnd,
