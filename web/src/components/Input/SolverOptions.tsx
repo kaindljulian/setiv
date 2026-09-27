@@ -43,15 +43,15 @@ export function SolverOptions({
         setFlagText(on ? [...rest, bcpFlag].join(" ") : rest.join(" "));
     };
 
-    // A marker stands in for the user flags, so the rest can be greyed out.
-    const marker = "\0";
-    const shape = solver.wasm.argv([marker], {
+    // workaround for finding split between flags and filename in argv
+    const marker = String.fromCharCode(0);
+    const argv = solver.wasm.argv([marker], {
         cnf: cnfName,
         log: "events.jsonl",
     });
-    const seam = shape.indexOf(marker);
-    const head = seam < 0 ? shape : shape.slice(0, seam);
-    const tail = seam < 0 ? [] : shape.slice(seam + 1);
+    const split = argv.indexOf(marker);
+    const head = split < 0 ? argv : argv.slice(0, split);
+    const tail = split < 0 ? [] : argv.slice(split + 1);
 
     return (
         <details class="group min-w-0 flex-1">

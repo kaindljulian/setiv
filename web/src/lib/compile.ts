@@ -11,7 +11,7 @@
  * than 2048 clauses, we fall back to Tseitin encoding with aux variables.
  */
 
-/** dimacs integer to variable name mapping. index 0 unused! */
+/** dimacs integer to variable name mapping. index 0 unused */
 export type VarNames = (string | undefined)[];
 
 export interface CompileError {
@@ -41,7 +41,7 @@ type Ast =
 type Clause = number[];
 
 interface Token {
-    text: string; // "" marks the end of input
+    text: string;
     at: number;
 }
 
@@ -52,7 +52,7 @@ class Fail {
     ) {}
 }
 
-class TooBig {}
+class ClauseBudgetExceededException {}
 
 function lex(src: string): Token[] {
     // whitespace | comment | operators | variable
@@ -86,7 +86,7 @@ function parse(tokens: Token[]) {
     const names: VarNames = [undefined];
     let p = 0;
 
-    const eat = (text: string): boolean => {
+    const take = (text: string): boolean => {
         if (tokens[p].text !== text) {
             return false;
         }
@@ -96,7 +96,7 @@ function parse(tokens: Token[]) {
 
     const expr = (): Ast => {
         let node = implies();
-        while (eat("<->")) {
+        while (take("<->")) {
             node = { k: "iff", l: node, r: implies() };
         }
         return node;
@@ -104,10 +104,10 @@ function parse(tokens: Token[]) {
 
     const implies = (): Ast => {
         const l = or();
-        if (eat("->")) {
+        if (take("->")) {
             return { k: "or", l: { k: "not", a: l }, r: implies() };
         }
-        if (eat("<-")) {
+        if (take("<-")) {
             return { k: "or", l, r: { k: "not", a: implies() } };
         }
         return l;
@@ -115,7 +115,7 @@ function parse(tokens: Token[]) {
 
     const or = (): Ast => {
         let node = and();
-        while (eat("|")) {
+        while (take("|")) {
             node = { k: "or", l: node, r: and() };
         }
         return node;
@@ -123,20 +123,20 @@ function parse(tokens: Token[]) {
 
     const and = (): Ast => {
         let node = not();
-        while (eat("&")) {
+        while (take("&")) {
             node = { k: "and", l: node, r: not() };
         }
         return node;
     };
 
     const not = (): Ast => {
-        if (eat("!")) {
+        if (take("!")) {
             return { k: "not", a: not() };
         }
 
-        if (eat("(")) {
+        if (take("(")) {
             const inner = expr();
-            if (!eat(")")) {
+            if (!take(")")) {
                 throw new Fail("expected )", tokens[p].at);
             }
             return inner;
@@ -167,14 +167,14 @@ function parse(tokens: Token[]) {
 
 function conj(a: Clause[], b: Clause[]): Clause[] {
     if (a.length + b.length > BUDGET) {
-        throw new TooBig();
+        throw new ClauseBudgetExceededException();
     }
     return [...a, ...b];
 }
 
 function disj(a: Clause[], b: Clause[]): Clause[] {
     if (a.length * b.length > BUDGET) {
-        throw new TooBig();
+        throw new ClauseBudgetExceededException();
     }
     return a.flatMap((x) => b.map((y) => [...x, ...y]));
 }
@@ -209,12 +209,12 @@ function distribute(a: Ast, neg: boolean): Clause[] {
     }
 }
 
-/** Direct CNF, or null if it would exceed the clause budget. */
+/** Direct CNF, or null if it would exceed the clause budget, only in that case we do tseitin. */
 function directCnf(ast: Ast): Clause[] | null {
     try {
         return distribute(ast, false);
     } catch (e) {
-        if (e instanceof TooBig) {
+        if (e instanceof ClauseBudgetExceededException) {
             return null;
         }
         throw e;
@@ -292,7 +292,7 @@ export function compileFormula(source: string): CompileResult {
             ? { clauses: direct, varCount: sourceCount }
             : tseitin(ast, sourceCount);
 
-        const kept = clauses.map(clean).filter((c): c is Clause => c !== null);
+        const kept = clauses.map(clean).filter((c) => c !== null);
 
         const lines = [
             ...names.slice(1).map((name, i) => `c ${i + 1} ${name}`),

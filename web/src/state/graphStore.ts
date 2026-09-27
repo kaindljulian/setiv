@@ -19,9 +19,12 @@ export interface GraphStore {
      */
     state: ReadonlySignal<SolverState | null>;
 
-    /** whether the graph follows the step, rather than show the current conflict as a snapshot */
+    /** whether the graph follows the step, rather than show the current conflict as a snapshot. True if < 100 variables in the formula */
     live: ReadonlySignal<boolean>;
 
+    /**
+     * per default it full, if > 30 nodes it is cone
+     */
     scope: ReadonlySignal<GraphScope>;
     setScope(scope: GraphScope): void;
 
