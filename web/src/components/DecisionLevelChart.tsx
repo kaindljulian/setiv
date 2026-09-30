@@ -25,8 +25,14 @@ interface Hover {
  *
  * the "sawtooth" a CDCL search traces as it
  * dives on decisions and drops on backjumps and restarts.
+ *
+ * `navigate` off for the guide, where a click only moves the cursor.
  */
-export function DecisionLevelChart() {
+export function DecisionLevelChart({
+    navigate = true,
+}: {
+    navigate?: boolean;
+}) {
     const timeline = useProjections().timeline.value;
     const run = useSource().run.value;
 
@@ -40,7 +46,10 @@ export function DecisionLevelChart() {
     const open = useRef<(step: number) => void>(() => {});
     open.current = (step: number) => {
         view.openEvent(step);
-        location.route("/main");
+
+        if (navigate) {
+            location.route("/main");
+        }
     };
 
     const { width, height } = size;
@@ -150,7 +159,7 @@ export function DecisionLevelChart() {
                 "transform",
                 `translate(12,${margin.top + innerH / 2}) rotate(-90)`,
             )
-            .text("deicsion level");
+            .text("decision level");
 
         const stepLine = d3
             .line()

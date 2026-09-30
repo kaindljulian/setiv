@@ -19,8 +19,11 @@ export function StatsBar() {
 
     const displayResult = result?.result ?? "aborted";
 
+    // the picker says nothing about a log that was loaded rather than solved here
+    const solvedHere = isSolving || source.generatedLog.value !== null;
+
     const fields: [string, string | number | undefined][] = [
-        ["solver", selectedSolver.value?.name],
+        ["solver", solvedHere ? selectedSolver.value?.name : undefined],
         ["events", stats.events],
         ["vars", stats.variables],
         ["clauses", stats.clauses],
