@@ -1,3 +1,5 @@
+import { cn } from "@/lib/cn";
+import { colors } from "@/view/theme";
 import { ChevronRight } from "lucide-preact";
 import { useRef } from "preact/hooks";
 import { samples, type Sample } from "./samples";
@@ -27,24 +29,52 @@ export function SampleList({ busy, onPick }: SampleListProps) {
                 Samples
             </summary>
 
-            <ul class="border-base-300 divide-base-300 mt-3 divide-y rounded border text-xs">
-                {samples.map((s) => (
-                    <li key={s.file}>
-                        <button
-                            type="button"
-                            onClick={() => choose(s)}
-                            disabled={busy}
-                            title={s.note}
-                            class="hover:bg-base-200 flex w-full cursor-pointer items-baseline gap-2 px-2 py-1.5 text-left"
-                        >
-                            <span class="shrink-0 font-medium">{s.label}</span>
-                            <span class="text-base-content/50 min-w-0 truncate">
-                                {s.note}
-                            </span>
-                        </button>
-                    </li>
-                ))}
-            </ul>
+            <div class="border-base-300 mt-3 overflow-hidden rounded border text-xs">
+                <div
+                    class={cn(
+                        "grid grid-cols-[minmax(0,1fr)_4.5rem_3.5rem] items-center gap-2",
+                        "border-base-300 bg-base-200 text-base-content/50 border-b px-2 py-1 text-[10px] tracking-wide uppercase",
+                    )}
+                >
+                    <span>Name</span>
+                    <span class="text-right">vars/clauses</span>
+                    <span class="text-right">result</span>
+                </div>
+
+                <ul class="divide-base-300 divide-y">
+                    {samples.map((s) => (
+                        <li key={s.file}>
+                            <button
+                                type="button"
+                                onClick={() => choose(s)}
+                                disabled={busy}
+                                title={`${s.file} - ${s.note}`}
+                                class={cn(
+                                    "grid grid-cols-[minmax(0,1fr)_4.5rem_3.5rem] items-center gap-2",
+                                    "hover:bg-base-200 w-full cursor-pointer px-2 py-1.5 text-left disabled:cursor-not-allowed",
+                                )}
+                            >
+                                <span class="truncate font-medium">
+                                    {s.label}
+                                </span>
+                                <span class="text-base-content/50 text-right font-mono tabular-nums">
+                                    {s.vars}/{s.clauses}
+                                </span>
+                                <span class="text-right">
+                                    <span
+                                        class={cn(
+                                            "badge badge-xs badge-soft",
+                                            colors[s.result],
+                                        )}
+                                    >
+                                        {s.result.toUpperCase()}
+                                    </span>
+                                </span>
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            </div>
         </details>
     );
 }
