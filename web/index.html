@@ -3,16 +3,28 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>SAT Solver Visualizations</title>
+        <title>Setiv - SAT Event Tracer and Interactive Viewer</title>
+        <meta
+            name="description"
+            content="Step through a SAT solvers search: trail, clause database, implication graph and decision tree, replayed from an event log."
+        />
+        <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+        <link rel="apple-touch-icon" href="/icon.svg" />
+        <meta name="theme-color" content="#0A1330" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap"
+            rel="stylesheet"
+        />
         <script>
             (function () {
                 try {
                     const stored = localStorage.getItem("setiv-theme");
                     document.documentElement.dataset.theme =
-                        stored ||
+                        (stored === "dark" ? "night" : stored) ||
                         (window.matchMedia("(prefers-color-scheme: dark)")
                             .matches
-                            ? "dark"
+                            ? "night"
                             : "light");
                 } catch (e) {
                     console.log("Failed to set theme from localStorage:", e);

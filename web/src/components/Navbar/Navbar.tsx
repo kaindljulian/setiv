@@ -10,9 +10,6 @@ import { useRef, useState } from "preact/hooks";
 import { SettingsMenu } from "./SettingsMenu";
 import { ThemeToggle } from "./ThemeToggle";
 
-declare const __GIT_SUBJECT__: string;
-declare const __GIT_DATE__: string;
-
 const pages = [
     { href: "/main", label: "Main", needsRun: true },
     { href: "/chart", label: "Chart", needsRun: true },
@@ -27,13 +24,18 @@ export function Navbar() {
         <header class="navbar border-base-300 bg-base-100 min-h-0 shrink-0 gap-2 border-b px-3 py-1.5">
             <div class="flex min-w-0 flex-1 items-center gap-2">
                 <h1
-                    class="z-10 shrink-0 cursor-pointer text-lg font-semibold"
+                    class="z-10 flex shrink-0 cursor-pointer items-center gap-2 text-lg font-semibold"
                     onClick={() => location.route("/")}
                 >
-                    SETIV
-                    <span class="text-base-content/50 hidden truncate text-center text-xs lg:inline">
-                        (<span class="font-mono">master </span>
-                        {__GIT_SUBJECT__} - {__GIT_DATE__})
+                    <img
+                        src="/icon.svg"
+                        alt=""
+                        width="24"
+                        height="24"
+                        class="shrink-0 rounded-md"
+                    />
+                    <span class="font-brand font-bold tracking-tight">
+                        setiv
                     </span>
                 </h1>
 

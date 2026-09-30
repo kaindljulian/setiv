@@ -3,11 +3,12 @@
 @plugin "daisyui" {
     themes:
         light --default,
-        dark --prefersdark;
+        night --prefersdark;
     logs: false;
 }
 
 @theme {
+    --font-brand: "Inter", ui-sans-serif, system-ui, sans-serif;
     --color-setiv-ink: var(--color-base-content);
     --color-setiv-surface: var(--color-base-100);
     --color-setiv-node: var(--color-neutral-content);

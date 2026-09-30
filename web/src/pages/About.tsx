@@ -1,5 +1,8 @@
 import type { ComponentChildren } from "preact";
 
+declare const __GIT_SUBJECT__: string;
+declare const __GIT_DATE__: string;
+
 const repoUrl = "https://github.com/kaindljulian/setiv";
 
 interface Credit {
@@ -96,7 +99,14 @@ export function AboutPage() {
     return (
         <main class="min-h-0 min-w-0 flex-1 overflow-y-auto">
             <div class="mx-auto flex max-w-3xl flex-col gap-8 p-6 pb-16 text-sm leading-relaxed">
-                <header>
+                <header class="flex items-center gap-3">
+                    <img
+                        src="/icon.svg"
+                        alt=""
+                        width="36"
+                        height="36"
+                        class="shrink-0 rounded-lg"
+                    />
                     <h1 class="text-2xl font-bold">About</h1>
                 </header>
 
@@ -211,7 +221,7 @@ export function AboutPage() {
                     <CreditList items={relatedWork} />
                 </Section>
 
-                <footer class="border-base-300 text-base-content/50 border-t pt-4 text-xs">
+                <footer class="border-base-300 text-base-content/50 flex flex-wrap items-center gap-x-2 gap-y-1 border-t pt-4 text-xs">
                     <a
                         href={repoUrl}
                         target="_blank"
@@ -220,6 +230,10 @@ export function AboutPage() {
                     >
                         Source on GitHub
                     </a>
+                    <span>
+                        (<span class="font-mono">master </span>
+                        {__GIT_SUBJECT__} - {__GIT_DATE__})
+                    </span>
                 </footer>
             </div>
         </main>

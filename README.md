@@ -1,8 +1,12 @@
-# Setiv
+<h1 align="center">
+  <img src="web/public/icon.svg" alt="" width="96" height="96" /><br />
+  Setiv
+</h1>
 
-**S**AT **E**vent **T**racer and **I**nteractive **V**iewer
-
-[setiv.pages.dev](https://setiv.pages.dev/)
+<p align="center">
+  <b>S</b>AT <b>E</b>vent <b>T</b>racer and <b>I</b>nteractive <b>V</b>iewer<br />
+  <a href="https://setiv.pages.dev/">setiv.pages.dev</a>
+</p>
 
 
 ## Overview
