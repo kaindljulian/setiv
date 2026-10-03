@@ -19,8 +19,15 @@ export function StatsBar() {
 
     const displayResult = result?.result ?? "aborted";
 
+    const isFromUserLogUpload = !(
+        isSolving || source.generatedLog.value !== null
+    );
+
     const fields: [string, string | number | undefined][] = [
-        ["solver", selectedSolver.value?.name],
+        [
+            "solver",
+            isFromUserLogUpload ? undefined : selectedSolver.value?.name,
+        ],
         ["events", stats.events],
         ["vars", stats.variables],
         ["clauses", stats.clauses],
