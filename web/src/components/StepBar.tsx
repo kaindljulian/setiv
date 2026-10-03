@@ -12,8 +12,7 @@ import { useEffect, useMemo, useRef } from "preact/hooks";
 
 const debounce_ms = 150;
 
-/** `hotkeys` off for the guide, where the page must keep the arrow keys. */
-export function StepBar({ hotkeys = true }: { hotkeys?: boolean }) {
+export function StepBar() {
     const cursor = useCursor();
     const view = useView();
     const run = useSource().run.value;
@@ -68,10 +67,6 @@ export function StepBar({ hotkeys = true }: { hotkeys?: boolean }) {
     }, [cursor]);
 
     useEffect(() => {
-        if (!hotkeys) {
-            return;
-        }
-
         const onKeyDown = (e: KeyboardEvent) => {
             switch (e.key) {
                 case "ArrowLeft":
@@ -89,7 +84,7 @@ export function StepBar({ hotkeys = true }: { hotkeys?: boolean }) {
 
         window.addEventListener("keydown", onKeyDown);
         return () => window.removeEventListener("keydown", onKeyDown);
-    }, [cursor, view, hotkeys]);
+    }, [cursor, view]);
 
     if (!run || run.events.length === 0) {
         return null;

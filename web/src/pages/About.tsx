@@ -14,7 +14,6 @@ import { useSource } from "@/state/context";
 import { Fragment, type ComponentChildren, type RefObject } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
-declare const __GIT_SUBJECT__: string;
 declare const __GIT_DATE__: string;
 
 const repoUrl = "https://github.com/kaindljulian/setiv";
@@ -73,24 +72,27 @@ const protocolEvents: [string, string][] = [
         "init",
         "the protocol version, the variable ids, and the full clause list",
     ],
-    ["decide", "the chosen literal, its level, the heuristic behind it"],
-    ["propagate", "the forced literal, its level, the id of the reason clause"],
+    [
+        "decide",
+        "the literal the solver picked to assign, decision level, the heuristic",
+    ],
+    [
+        "propagate",
+        "the forced literal, decision level, the id of the reason clause",
+    ],
     [
         "conflict",
-        "the falsified clause with its literals, the level, the trail",
+        "the falsified clause with its literals, the level, a trail snapshot",
     ],
-    [
-        "learn",
-        "the learned clause and its id, the jump level, the glue if the solver keeps one",
-    ],
-    ["backtrack", "the levels unwound from and to, and what asked for it"],
-    ["restart", "the restart counter"],
+    ["learn", "the learned clause and its id, the jump level"],
+    ["backtrack", "the backtracks from and to decision levels"],
+    ["restart", "restart with running counter"],
     ["delete_clause", "a clause dropped from the database"],
     [
         "inspect",
-        "one clause inspection during propagation, its outcome and its watched literals, only at BCP level logging",
+        "one clause inspection during propagation, its outcome and its watched literals (only at BCP-level logging)",
     ],
-    ["result", "sat, unsat or unknown, with the model"],
+    ["result", "unsat, unknown, or sat with the model"],
 ];
 
 const eventLogDecalContent = `{"event":"decide","literal":-7,"level":3,"heuristic":"vmtf"}
@@ -231,7 +233,7 @@ export function AboutPage() {
                                     maskImage: fadeEnds,
                                     WebkitMaskImage: fadeEnds,
                                 }}
-                                class="[linear-gradient(105deg,#23CCED_0%,#318CE3_25%,#3A5DDB_45%,transparent_62%)] pointer-events-none absolute -top-12 left-full ml-10 hidden w-160 bg-clip-text font-mono text-xs leading-6 whitespace-pre text-transparent opacity-60 select-none xl:block"
+                                class="pointer-events-none absolute -top-12 left-full ml-10 hidden w-160 bg-[image:linear-gradient(105deg,#23CCED_0%,#318CE3_25%,#3A5DDB_45%,transparent_62%)] bg-clip-text font-mono text-xs leading-6 whitespace-pre text-transparent opacity-60 select-none xl:block"
                             >
                                 {eventLogDecalContent}
                             </pre>
@@ -247,7 +249,8 @@ export function AboutPage() {
                                     class="mb-2 text-base font-semibold"
                                     id="example_run"
                                 >
-                                    Example
+                                    Example to illustrate the different
+                                    components
                                 </h2>
                                 <p>
                                     Every view below is live and interactive.
@@ -261,6 +264,8 @@ export function AboutPage() {
                                     holes (unsat).
                                 </p>
                             </section>
+
+                            <Dimacs />
 
                             <Section id="chart" title="Decision level chart">
                                 <p>
@@ -368,7 +373,7 @@ export function AboutPage() {
 
                             <div class="sticky bottom-4 z-10">
                                 <div class="card card-border border-base-300 bg-base-100 overflow-hidden shadow-xl">
-                                    <StepBar hotkeys={false} />
+                                    <StepBar />
                                 </div>
                             </div>
                         </div>
@@ -398,10 +403,6 @@ export function AboutPage() {
                     </Section>
 
                     <Section id="solvers" title="Solvers">
-                        <p class="mb-2">
-                            All of these are compiled to WebAssembly and run in
-                            a worker, so nothing leaves the browser.
-                        </p>
                         <CreditList items={wasmSolvers} />
                     </Section>
 
@@ -419,8 +420,9 @@ export function AboutPage() {
                             Source on GitHub
                         </a>
                         <span>
-                            (<span class="font-mono">master </span>
-                            {__GIT_SUBJECT__} - {__GIT_DATE__})
+                            (
+                            <span class="font-mono">master {__GIT_DATE__}</span>
+                            )
                         </span>
                     </footer>
                 </div>
@@ -429,9 +431,9 @@ export function AboutPage() {
     );
 }
 
-/** Sticky rail, with the section the reader is in marked. */
 function Contents({ scroller }: { scroller: RefObject<HTMLElement> }) {
     const [active, setActive] = useState(toc[0].id);
+    const pinnedUntil = useRef(0);
 
     useEffect(() => {
         const root = scroller.current;
@@ -445,7 +447,11 @@ function Contents({ scroller }: { scroller: RefObject<HTMLElement> }) {
             .filter((el): el is HTMLElement => el !== null);
 
         const update = () => {
-            const line = root.getBoundingClientRect().top + 140;
+            if (performance.now() < pinnedUntil.current) {
+                return;
+            }
+
+            const line = root.getBoundingClientRect().top + 40;
             let current = toc[0].id;
 
             for (const section of sections) {
@@ -476,6 +482,10 @@ function Contents({ scroller }: { scroller: RefObject<HTMLElement> }) {
                     <li key={id} class="flex">
                         <a
                             href={`#${id}`}
+                            onClick={() => {
+                                setActive(id);
+                                pinnedUntil.current = performance.now() + 600;
+                            }}
                             aria-current={active === id ? "true" : undefined}
                             class={cn(
                                 "-ml-px border-l py-1 pl-3 text-xs transition-colors",
@@ -490,6 +500,33 @@ function Contents({ scroller }: { scroller: RefObject<HTMLElement> }) {
                 ))}
             </ul>
         </nav>
+    );
+}
+
+function Dimacs() {
+    const run = useSource().run.value;
+    const init = run?.init;
+
+    if (!run || !init) {
+        return null;
+    }
+
+    const lines = [
+        `p cnf ${init.variables} ${init.clauses}`,
+        ...run.clauseDb.clauses
+            .slice(0, run.clauseDb.firstLearnedIndex)
+            .map((clause) => `${clause.literals.join(" ")} 0`),
+    ];
+
+    return (
+        <div class="border-base-300 bg-base-200 rounded-box overflow-hidden border">
+            <p class="border-base-300 text-base-content/60 border-b px-3 py-1.5 font-mono text-xs">
+                php_5_4.cnf
+            </p>
+            <pre class="max-h-64 overflow-auto px-3 py-2 font-mono text-[11px] leading-5">
+                {lines.join("\n")}
+            </pre>
+        </div>
     );
 }
 

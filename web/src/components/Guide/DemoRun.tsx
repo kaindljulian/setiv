@@ -8,14 +8,12 @@ const logName = "php_5_4_cadical_events.jsonl";
 const logUrl = `${import.meta.env.BASE_URL}guide/${logName}`;
 
 /**
- * The run the guide draws, in a store of its own so the figures can be the
- * app's own panels without disturbing the run the user has open.
+ * The run the guide draws, is in in a seperate store (SolverProvider)
  */
 export function DemoRun({
     step,
     children,
 }: {
-    /** Event the cursor starts on, instead of the first conflict. */
     step?: number;
     children: ComponentChildren;
 }) {
@@ -47,8 +45,7 @@ function LoadDemo({ step }: { step?: number }) {
                 return;
             }
 
-            // a load clears the variable names, and those belong to whatever
-            // run the user has open in the app store
+            // a load clears the variable names,belong to the run the user has open in the normal store
             const names = varNames.peek();
             source.loadLog(text, logName);
             varNames.value = names;
@@ -72,7 +69,6 @@ function LoadDemo({ step }: { step?: number }) {
     return null;
 }
 
-/** Bounded box a `fill` panel can live in, outside the app's layout. */
 export function Figure({
     class: className,
     children,
