@@ -93,8 +93,7 @@ const protocolEvents: [string, string][] = [
     ["result", "sat, unsat or unknown, with the model"],
 ];
 
-/** Decoration beside the event list. Rough shape and event names, nothing to read. */
-const logWash = `{"event":"decide","literal":-7,"level":3,"heuristic":"vmtf"}
+const eventLogDecalContent = `{"event":"decide","literal":-7,"level":3,"heuristic":"vmtf"}
 {"event":"inspect","clause_id":12,"outcome":"unit","watched":[7,-2]}
 {"event":"propagate","literal":-2,"level":3,"reason_clause_id":12}
 {"event":"inspect","clause_id":19,"outcome":"unresolved","watched":[2,5],"next_watched":[2,9]}
@@ -123,10 +122,10 @@ const logWash = `{"event":"decide","literal":-7,"level":3,"heuristic":"vmtf"}
 const fadeEnds =
     "linear-gradient(to bottom, transparent 0%, #000 14%, #000 80%, transparent 100%)";
 
-/** The `learn` event of the deepest conflict, where the figures start. */
+/** first learn event */
 const conflictStep = 338;
 
-const contents: { id: string; label: string }[] = [
+const toc: { id: string; label: string }[] = [
     { id: "protocol", label: "Event protocol" },
     { id: "chart", label: "Decision level chart" },
     { id: "stepbar", label: "Step bar" },
@@ -149,7 +148,7 @@ export function AboutPage() {
             ref={scroller}
             class="min-h-0 min-w-0 flex-1 overflow-x-clip overflow-y-auto"
         >
-            <div class="mx-auto flex max-w-[61.5rem] gap-10 p-6 pb-16 text-sm leading-relaxed">
+            <div class="mx-auto flex max-w-246 gap-10 p-6 pb-16 text-sm leading-relaxed">
                 <Contents scroller={scroller} />
                 <div class="mx-auto flex w-full max-w-3xl min-w-0 flex-col gap-8">
                     <header class="flex flex-col gap-3">
@@ -232,9 +231,9 @@ export function AboutPage() {
                                     maskImage: fadeEnds,
                                     WebkitMaskImage: fadeEnds,
                                 }}
-                                class="pointer-events-none absolute -top-12 left-full ml-10 hidden w-[40rem] bg-[image:linear-gradient(105deg,#23CCED_0%,#318CE3_25%,#3A5DDB_45%,transparent_62%)] bg-clip-text font-mono text-xs leading-6 whitespace-pre text-transparent opacity-60 select-none xl:block"
+                                class="[linear-gradient(105deg,#23CCED_0%,#318CE3_25%,#3A5DDB_45%,transparent_62%)] pointer-events-none absolute -top-12 left-full ml-10 hidden w-160 bg-clip-text font-mono text-xs leading-6 whitespace-pre text-transparent opacity-60 select-none xl:block"
                             >
-                                {logWash}
+                                {eventLogDecalContent}
                             </pre>
                         </div>
                     </Section>
@@ -291,7 +290,7 @@ export function AboutPage() {
                                     database split into original, learned and
                                     deleted.
                                 </p>
-                                <Figure class="h-[30rem]">
+                                <Figure class="h-120">
                                     <div class="border-base-300 bg-base-200 flex h-full w-80 flex-col overflow-hidden rounded border">
                                         <div class="flex min-h-0 flex-1 flex-col overflow-hidden">
                                             <Sidebar />
@@ -312,7 +311,7 @@ export function AboutPage() {
                                     it can be collapsed to hide majority of
                                     nodes.
                                 </p>
-                                <Figure class="h-[30rem]">
+                                <Figure class="h-120">
                                     <DecisionTreePanel />
                                 </Figure>
                             </Section>
@@ -325,7 +324,7 @@ export function AboutPage() {
                                     clause. The literals on the learned clause
                                     are highlighted.
                                 </p>
-                                <Figure class="h-[30rem]">
+                                <Figure class="h-120">
                                     <ImplicationPanel />
                                 </Figure>
                             </Section>
@@ -432,7 +431,7 @@ export function AboutPage() {
 
 /** Sticky rail, with the section the reader is in marked. */
 function Contents({ scroller }: { scroller: RefObject<HTMLElement> }) {
-    const [active, setActive] = useState(contents[0].id);
+    const [active, setActive] = useState(toc[0].id);
 
     useEffect(() => {
         const root = scroller.current;
@@ -441,13 +440,13 @@ function Contents({ scroller }: { scroller: RefObject<HTMLElement> }) {
             return;
         }
 
-        const sections = contents
+        const sections = toc
             .map(({ id }) => document.getElementById(id))
             .filter((el): el is HTMLElement => el !== null);
 
         const update = () => {
             const line = root.getBoundingClientRect().top + 140;
-            let current = contents[0].id;
+            let current = toc[0].id;
 
             for (const section of sections) {
                 if (section.getBoundingClientRect().top <= line) {
@@ -473,7 +472,7 @@ function Contents({ scroller }: { scroller: RefObject<HTMLElement> }) {
                 CONTENTS
             </p>
             <ul class="border-base-300 flex flex-col border-l">
-                {contents.map(({ id, label }) => (
+                {toc.map(({ id, label }) => (
                     <li key={id} class="flex">
                         <a
                             href={`#${id}`}
