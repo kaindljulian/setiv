@@ -103,14 +103,32 @@ const logWash = `{"event":"decide","literal":-7,"level":3,"heuristic":"vmtf"}
 {"event":"learn","learned_literals":[-4,1,11],"glue":2,"clause_id":46,"jump_level":1}
 {"event":"backtrack","from_level":3,"to_level":1,"kind":"conflict","reason":"analyze"}
 {"event":"propagate","literal":11,"level":1,"reason_clause_id":46}
+{"event":"inspect","clause_id":31,"outcome":"satisfied","watched":[-11,6]}
+{"event":"decide","literal":5,"level":2,"heuristic":"vmtf"}
+{"event":"inspect","clause_id":8,"outcome":"unit","watched":[-5,3]}
+{"event":"propagate","literal":3,"level":2,"reason_clause_id":8}
+{"event":"inspect","clause_id":27,"outcome":"unresolved","watched":[-3,10],"next_watched":[-3,12]}
+{"event":"decide","literal":-9,"level":3,"heuristic":"vmtf"}
+{"event":"inspect","clause_id":44,"outcome":"unit","watched":[9,-6]}
+{"event":"propagate","literal":-6,"level":3,"reason_clause_id":44}
+{"event":"inspect","clause_id":17,"outcome":"falsified","watched":[6,-12]}
+{"event":"conflict","clause_id":17,"literals":[6,-12],"level":3,"trail":[11,5,3,-9,-6]}
+{"event":"learn","learned_literals":[-5,9,12],"glue":3,"clause_id":47,"jump_level":2}
+{"event":"backtrack","from_level":3,"to_level":2,"kind":"conflict","reason":"analyze"}
+{"event":"propagate","literal":12,"level":2,"reason_clause_id":47}
+{"event":"restart","count":4}
+{"event":"backtrack","from_level":2,"to_level":0,"kind":"restart","reason":"restart"}
 {"event":"delete_clause","clause_id":38,"literals":[-6,3,9]}`;
+
+const fadeEnds =
+    "linear-gradient(to bottom, transparent 0%, #000 14%, #000 80%, transparent 100%)";
 
 /** The `learn` event of the deepest conflict, where the figures start. */
 const conflictStep = 338;
 
 const contents: { id: string; label: string }[] = [
     { id: "protocol", label: "Event protocol" },
-    { id: "cursor", label: "Cursor" },
+    { id: "chart", label: "Decision level chart" },
     { id: "stepbar", label: "Step bar" },
     { id: "sidebar", label: "Trail and clause database" },
     { id: "tree", label: "Decision tree" },
@@ -118,7 +136,6 @@ const contents: { id: string; label: string }[] = [
     { id: "formula", label: "Formula" },
     { id: "bcp", label: "BCP" },
     { id: "log", label: "Event log" },
-    { id: "chart", label: "Decision level chart" },
     { id: "keys", label: "Keybinds" },
     { id: "solvers", label: "Solvers" },
     { id: "related", label: "Related" },
@@ -138,18 +155,10 @@ export function AboutPage() {
                     <header class="flex flex-col gap-3">
                         <h1 class="text-2xl font-bold">SETIV</h1>
                         <p>
-                            A viewer for CDCL search traces. A solver writes one
-                            JSON event per line while it searches, and this app
-                            replays that log: the trail, the clause database,
-                            the implication graph of a conflict, the search
-                            tree, and the decision level over time, each at a
-                            step you pick.
-                        </p>
-                        <p>
-                            This page explains every view and what you can do in
-                            it. It assumes you know CDCL, so decisions,
-                            propagation, conflict analysis, backjumping and
-                            watched literals are used without introduction.
+                            A viewer for CDCL search traces. A SAT solver writes
+                            an event protocol as JSON as it searches, this
+                            web-based viewer replays that log and uses it to
+                            visualize the SAT solvers search.
                         </p>
                     </header>
 
@@ -157,11 +166,11 @@ export function AboutPage() {
                         <div class="border-base-300 bg-base-100 rounded-box border p-4">
                             <h2 class="mb-2 font-semibold">Event protocol</h2>
                             <p>
-                                An NDJSON stream of what a search does, written
-                                without reference to any solver's internals. A
-                                solver implements it by emitting an event where
-                                its own code already decides, propagates or
-                                learns.
+                                A JSON stream of what the solver did, written
+                                without reference to any specific solver's
+                                internals. A solver implements it by emitting an
+                                event where its own code already decides,
+                                propagates or learns.
                             </p>
                             <p class="mt-2 flex gap-3">
                                 <a
@@ -170,7 +179,7 @@ export function AboutPage() {
                                     rel="noreferrer"
                                     class="link"
                                 >
-                                    Spec
+                                    Specification
                                 </a>
                                 <a
                                     href={schemaUrl}
@@ -188,84 +197,46 @@ export function AboutPage() {
                                 This app reads such a log, or produces one by
                                 running a solver in the browser, and replays it.
                                 At any step of the run you can read the trail,
-                                the clause database, the implication graph of
-                                the conflict, the search tree and the decision
-                                level.
+                                the clause database, the implication graph, the
+                                search tree, and more.
                             </p>
                             <p class="mt-2">
-                                <a href="/" class="link">
-                                    Load an example
-                                </a>
+                                The{" "}
+                                <a href="#example_run" class="link">
+                                    example below
+                                </a>{" "}
+                                demonstrates and explaines the different views.
                             </p>
                         </div>
                     </div>
 
                     <Section id="protocol" title="Event protocol">
-                        <div class="relative">
-                            <p>
-                                NDJSON, one event per line. A log opens with{" "}
-                                <code class="font-mono">init</code> and ends
-                                with <code class="font-mono">result</code>.
-                                Whatever a solver emits after that is teardown,
-                                and the parser stops there.
-                            </p>
-
-                            <dl class="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+                        <p>NDJSON, one event per line:</p>
+                        <div class="relative mt-4">
+                            <dl class="border-base-300 grid grid-cols-[auto_1fr] border-t">
                                 {protocolEvents.map(([name, fields]) => (
                                     <Fragment key={name}>
-                                        <dt class="font-mono">{name}</dt>
-                                        <dd class="text-base-content/70">
+                                        <dt class="border-base-300 border-b py-1.5 pr-6 font-mono">
+                                            {name}
+                                        </dt>
+                                        <dd class="border-base-300 text-base-content/70 border-b py-1.5">
                                             {fields}
                                         </dd>
                                     </Fragment>
                                 ))}
                             </dl>
 
-                            <p class="mt-3">
-                                The protocol names no solver internals, which is
-                                what makes one log readable next to another.
-                                Fields a solver has nothing to say about are
-                                left out rather than filled with placeholders,
-                                so a view shows a glue value only for a log that
-                                carried one.
-                            </p>
-                            <p class="mt-2">
-                                Everything in the viewer is derived from the
-                                log. There is no second channel to the solver,
-                                and a log from a file is worth exactly as much
-                                as one produced in the browser a second ago.
-                            </p>
-
                             <pre
                                 aria-hidden="true"
-                                class="pointer-events-none absolute top-0 left-full ml-10 hidden w-[40rem] bg-[image:linear-gradient(105deg,#23CCED_0%,#318CE3_25%,#3A5DDB_45%,transparent_62%)] bg-clip-text font-mono text-[11px] leading-5 whitespace-pre text-transparent opacity-60 select-none xl:block"
+                                style={{
+                                    maskImage: fadeEnds,
+                                    WebkitMaskImage: fadeEnds,
+                                }}
+                                class="pointer-events-none absolute -top-12 left-full ml-10 hidden w-[40rem] bg-[image:linear-gradient(105deg,#23CCED_0%,#318CE3_25%,#3A5DDB_45%,transparent_62%)] bg-clip-text font-mono text-xs leading-6 whitespace-pre text-transparent opacity-60 select-none xl:block"
                             >
                                 {logWash}
                             </pre>
                         </div>
-                    </Section>
-
-                    <Section id="cursor" title="Cursor">
-                        <p>
-                            One integer drives the app: the index of the current
-                            event. Every view is a function of the run and that
-                            index. The state at a step, meaning the assignment,
-                            the decision level, the trail with a reason per
-                            literal, the clause database as it stood and the
-                            conflict if one is active, comes from replaying the
-                            prefix of the log. Checkpoints along the way keep
-                            stepping backwards from refolding the whole prefix.
-                        </p>
-                        <p class="mt-2">
-                            There are two step values. Dragging the slider moves
-                            the live step on every tick and the cheap views
-                            follow it. Releasing commits, and the expensive
-                            views rebuild on the committed step. The selected
-                            conflict is derived rather than stored: it is the
-                            last conflict at or before the committed step, which
-                            is why the conflict badge changes as you scrub past
-                            one.
-                        </p>
                     </Section>
 
                     <DemoRun step={conflictStep}>
@@ -273,55 +244,40 @@ export function AboutPage() {
                             <LoadDiagnostics />
 
                             <section class="border-base-300 bg-base-100 rounded-box border p-4">
-                                <h2 class="mb-2 text-base font-semibold">
-                                    The run below
+                                <h2
+                                    class="mb-2 text-base font-semibold"
+                                    id="example_run"
+                                >
+                                    Example
                                 </h2>
                                 <p>
-                                    Every figure on this page is live and shows
-                                    CaDiCaL on{" "}
-                                    <code class="font-mono">php_5_4</code>, the
-                                    pigeonhole formula for five pigeons and four
-                                    holes. 20 variables, 45 clauses, UNSAT,
-                                    logged at BCP level. The flags{" "}
-                                    <code class="font-mono">
-                                        --chrono=false
-                                    </code>
-                                    , <code class="font-mono">--no-otfs</code>{" "}
-                                    and{" "}
-                                    <code class="font-mono">--shrink=0</code>{" "}
-                                    keep the trace close to textbook CDCL.
+                                    Every view below is live and interactive.
+                                    They are all connected to the same run.
+                                    Moving the cursor updates all views.
                                 </p>
                                 <p class="mt-2">
-                                    The figures are the app's own panels and
-                                    they share one cursor, so a click in one of
-                                    them moves the others. In the graph views,
-                                    drag to pan and scroll to zoom.
+                                    This example run is: CaDiCaL on{" "}
+                                    <code class="font-mono">php_5_4</code>, the
+                                    pigeonhole formula for five pigeons and four
+                                    holes (unsat).
                                 </p>
                             </section>
 
+                            <Section id="chart" title="Decision level chart">
+                                <p>
+                                    A global chart of decision level against
+                                    event index. Hover for the event details,
+                                    click to move the cursor.
+                                </p>
+                                <ChartFigure />
+                            </Section>
+
                             <Section id="stepbar" title="Step bar">
                                 <p>
-                                    The cursor control, below the view in the
-                                    main page. The slider spans the whole log.
-                                    The transport buttons step one event, or
-                                    jump to the previous or next conflict. To
-                                    the right is the step index, the current
-                                    event as one line of text, and a badge with
-                                    the index of the selected conflict.
-                                </p>
-                                <p class="mt-2">
-                                    The red ticks above the slider mark conflict
-                                    events, drawn for runs with fewer than 200
-                                    conflicts, which is enough to see where the
-                                    search struggled. Arrow keys do the same as
-                                    the transport buttons, except on this page,
-                                    where they are left to the browser so the
-                                    page still scrolls.
-                                </p>
-                                <p class="mt-2">
-                                    Here the bar is pinned to the bottom of the
-                                    window for as long as a figure is on screen,
-                                    so you can drive all of them from one place.
+                                    The main cursor control is the step bar at
+                                    the bottom of the page. It shows the current
+                                    step and lets you jump to any other step,
+                                    either by clicking or dragging the handle.
                                 </p>
                             </Section>
 
@@ -330,48 +286,10 @@ export function AboutPage() {
                                 title="Trail and clause database"
                             >
                                 <p>
-                                    The sidebar of the main page. Its header
-                                    counts the whole run and shows the result. A
-                                    run solved in the browser also offers its
-                                    generated log for download, so you can keep
-                                    it and load it later.
-                                </p>
-                                <p class="mt-2">
-                                    The trail lists every assignment at the
-                                    current step, in assignment order, with its
-                                    decision level and its reason. The reason
-                                    reads{" "}
-                                    <code class="font-mono">decision</code> for
-                                    decisions, <code class="font-mono">cN</code>{" "}
-                                    for a propagation forced by clause N, and{" "}
-                                    <code class="font-mono">unit</code> for a
-                                    root level unit with no clause behind it.
-                                    Dividers separate the levels. Clicking a row
-                                    moves the cursor to the event that made the
-                                    assignment, clicking its reason reveals that
-                                    clause in the list it belongs to.
-                                </p>
-                                <p class="mt-2">
-                                    Below the trail are the clauses: the
-                                    original ones from{" "}
-                                    <code class="font-mono">init</code>, the
-                                    learned ones alive at this step, and the
-                                    ones deleted at or before it. Literals are
-                                    coloured by their current value. Deletions
-                                    come from clause database reduction during
-                                    the search. This run is too short for one,
-                                    and whatever a solver deletes while tearing
-                                    down after{" "}
-                                    <code class="font-mono">result</code> is
-                                    past the end of the log.
-                                </p>
-                                <p class="mt-2">
-                                    The filter row acts on the open section. On
-                                    the trail it filters by decision level, on a
-                                    clause list by the clause state under the
-                                    current assignment, and the text box matches
-                                    variables. The badge then reads matches over
-                                    total.
+                                    The trail at the current step with a level
+                                    and a reason per literal, and the clause
+                                    database split into original, learned and
+                                    deleted.
                                 </p>
                                 <Figure class="h-[30rem]">
                                     <div class="border-base-300 bg-base-200 flex h-full w-80 flex-col overflow-hidden rounded border">
@@ -384,43 +302,15 @@ export function AboutPage() {
 
                             <Section id="tree" title="Decision tree">
                                 <p>
-                                    The search tree of the whole run as it
-                                    stands at the committed step. The root is
-                                    level 0. A decision opens a branch, drawn
-                                    with a solid edge, and everything it
-                                    propagates hangs off it on dashed edges.
-                                    Conflicts are diamonds. A node whose
-                                    assignment a backtrack has already unwound
-                                    stays drawn, dimmed, so the refuted part of
-                                    the search keeps its place in the picture.
+                                    The search tree of the run at the current
+                                    step. A decision opens a branch, dashed
+                                    edges mean propagated, a branch that was
+                                    backtracked is grayed out.
                                 </p>
                                 <p class="mt-2">
-                                    Two modes. Decisions folds each propagation
-                                    chain into the decision that caused it and
-                                    writes <code class="font-mono">+N</code>{" "}
-                                    next to the node for the N literals it
-                                    stands for. Propagations draws every
-                                    propagated literal as its own node. Logs
-                                    above 400 events start folded.
-                                </p>
-                                <p class="mt-2">
-                                    Materializing the tree is capped at 1200
-                                    nodes. Above that, subtrees collapse behind
-                                    a dashed <code class="font-mono">+</code>{" "}
-                                    marker that counts what it hides, and a
-                                    badge in the header counts the hidden nodes.
-                                    Click a marker to open one, or use Expand
-                                    All and Collapse All. This run fits the cap,
-                                    so no markers appear.
-                                </p>
-                                <p class="mt-2">
-                                    Hovering a node gives its kind, event index,
-                                    level, position on the trail, and either the
-                                    heuristic that picked the decision or the
-                                    reason clause with its literals under the
-                                    current assignment. Clicking an assignment
-                                    selects it in the trail, clicking a conflict
-                                    moves the cursor to it.
+                                    For large instances the tree can be huge, so
+                                    it can be collapsed to hide majority of
+                                    nodes.
                                 </p>
                                 <Figure class="h-[30rem]">
                                     <DecisionTreePanel />
@@ -429,52 +319,11 @@ export function AboutPage() {
 
                             <Section id="graph" title="Implication graph">
                                 <p>
-                                    One node per assignment on the trail, plus
-                                    the conflict node κ. A node shows its
-                                    literal, with an overbar when negative, and
-                                    its decision level on the right. Decisions
-                                    carry an accent bar. A node is filled as
-                                    learned when its negation appears in the
-                                    learned clause, which marks the cut that
-                                    conflict analysis settled on, and the clause
-                                    itself is shown as a badge above the graph
-                                    once the{" "}
-                                    <code class="font-mono">learn</code> event
-                                    is reached.
-                                </p>
-                                <p class="mt-2">
-                                    An edge goes from each antecedent of a
-                                    propagation to the literal it forced and
-                                    carries the id of the reason clause. The
-                                    edges into κ come from the literals of the
-                                    falsified clause.
-                                </p>
-                                <p class="mt-2">
-                                    Scope: Full is the implication graph of the
-                                    whole trail, Cone keeps only the ancestors
-                                    of κ. A graph with a conflict and more than
-                                    30 nodes starts as a cone.
-                                </p>
-                                <p class="mt-2">
-                                    Under 100 variables the graph follows the
-                                    cursor event by event and animates each node
-                                    as it enters. Above that it would be too
-                                    expensive to rebuild per step, so it is
-                                    anchored at the selected conflict and marked
-                                    as a snapshot. When the cursor has moved
-                                    past that anchor, a badge says how far
-                                    behind the drawing is and takes you back to
-                                    the conflict event. This run has 20
-                                    variables, so the graph here is live.
-                                </p>
-                                <p class="mt-2">
-                                    Hovering a node shows the clause that forced
-                                    it, or falsified it for κ. Clicking a node
-                                    selects it in the trail, clicking an edge
-                                    label reveals the reason clause. The
-                                    conflict selector steps through conflicts or
-                                    picks one from the list, where every entry
-                                    names its clause, level and event.
+                                    One node per assignment on the trail plus
+                                    the conflict node. Edges represent
+                                    propagations, labelled with the reason
+                                    clause. The literals on the learned clause
+                                    are highlighted.
                                 </p>
                                 <Figure class="h-[30rem]">
                                     <ImplicationPanel />
@@ -483,24 +332,10 @@ export function AboutPage() {
 
                             <Section id="formula" title="Formula">
                                 <p>
-                                    The original clauses from{" "}
-                                    <code class="font-mono">init</code>,
-                                    evaluated under the assignment at the
-                                    current step. Lines mode draws one clause
-                                    per line with its id in the gutter and tints
-                                    the row by clause state: satisfied,
-                                    falsified, or unit. Continuous mode sets the
-                                    same clauses as flowing text and is off
-                                    above 500 clauses, where it stops being
-                                    readable anyway. The highlight button
-                                    switches the tint from clause state to
-                                    literal value. Clicking a clause id reveals
-                                    it in the sidebar.
-                                </p>
-                                <p class="mt-2">
-                                    Learned clauses are deliberately not here.
-                                    This view is the input formula, the sidebar
-                                    holds what the solver added.
+                                    The original clauses under the assignment at
+                                    the current step. Learned and deleted
+                                    clauses are not represented here, they are
+                                    in the sidebar.
                                 </p>
                                 <Figure>
                                     <FormulaPanel />
@@ -509,29 +344,11 @@ export function AboutPage() {
 
                             <Section id="bcp" title="BCP">
                                 <p>
-                                    Present only for logs that contain{" "}
-                                    <code class="font-mono">inspect</code>{" "}
+                                    Only for logs with
+                                    <code class="font-mono"> inspect </code>
                                     events, which a solver emits at BCP level
-                                    logging. The rows are the clauses alive at
-                                    this step, original first, then learned.
-                                </p>
-                                <p class="mt-2">
-                                    When the cursor sits on an inspection, its
-                                    clause is tinted by the outcome, satisfied,
-                                    unit, falsified or unresolved, and the view
-                                    scrolls to that row. The watched literals
-                                    are ringed. If the inspection moved a watch,
-                                    the new pair is ringed and the literal it
-                                    replaced keeps a dashed outline, so stepping
-                                    through a propagation phase one event at a
-                                    time walks the watch lists clause by clause.
-                                </p>
-                                <p class="mt-2">
-                                    The page starts on a{" "}
-                                    <code class="font-mono">learn</code> event,
-                                    where no clause is under inspection. Step
-                                    forward with the bar at the bottom to watch
-                                    the rows light up.
+                                    logging (see "Solver options" when creating
+                                    a run). Watched literals are outlined.
                                 </p>
                                 <Figure>
                                     <BcpPanel active />
@@ -541,11 +358,7 @@ export function AboutPage() {
                             <Section id="log" title="Event log">
                                 <p>
                                     One row per parsed event, as the solver
-                                    logged it. The row at the cursor is
-                                    highlighted and the view follows it.
-                                    Clicking a row moves the cursor there. When
-                                    a view surprises you, this is where to check
-                                    what the solver actually claimed.
+                                    logged it. Click a row to jump there.
                                 </p>
                                 <Figure>
                                     <Panel fill title="Event Log">
@@ -554,37 +367,7 @@ export function AboutPage() {
                                 </Figure>
                             </Section>
 
-                            <Section id="chart" title="Decision level chart">
-                                <p>
-                                    Decision level against event index, as a
-                                    step function, on its own page. Decisions
-                                    climb one level at a time, a backjump drops
-                                    straight to the jump level, and the sawtooth
-                                    that comes out is the shape of the search.
-                                </p>
-                                <p class="mt-2">
-                                    Restarts are dashed vertical marks, up to a
-                                    limit past which they would hide the line.
-                                    This run never restarts, it ends long before
-                                    any restart interval is reached.
-                                </p>
-                                <p class="mt-2">
-                                    When the visible range holds more events
-                                    than pixels, each pixel column is reduced to
-                                    one point and a band behind the line gives
-                                    the minimum and maximum level in that
-                                    column, so a deep dive between two sampled
-                                    events stays visible. Zooming in far enough
-                                    drops the band and draws every event. Hover
-                                    for a crosshair with the event index, the
-                                    level and the event text. In the app a click
-                                    opens that event in the main view; here it
-                                    only moves the cursor.
-                                </p>
-                                <ChartFigure />
-                            </Section>
-
-                            <div class="sticky bottom-0 z-10 mb-4">
+                            <div class="sticky bottom-4 z-10">
                                 <div class="card card-border border-base-300 bg-base-100 overflow-hidden shadow-xl">
                                     <StepBar hotkeys={false} />
                                 </div>
@@ -687,7 +470,7 @@ function Contents({ scroller }: { scroller: RefObject<HTMLElement> }) {
             class="sticky top-6 hidden w-44 shrink-0 self-start lg:block"
         >
             <p class="text-base-content/50 mb-2 pl-3 text-xs font-semibold tracking-wide uppercase">
-                On this page
+                CONTENTS
             </p>
             <ul class="border-base-300 flex flex-col border-l">
                 {contents.map(({ id, label }) => (
