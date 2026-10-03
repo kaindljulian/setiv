@@ -233,7 +233,7 @@ export function AboutPage() {
                                     maskImage: fadeEnds,
                                     WebkitMaskImage: fadeEnds,
                                 }}
-                                class="pointer-events-none absolute -top-12 left-full ml-10 hidden w-160 bg-[image:linear-gradient(105deg,#23CCED_0%,#318CE3_25%,#3A5DDB_45%,transparent_62%)] bg-clip-text font-mono text-xs leading-6 whitespace-pre text-transparent opacity-60 select-none xl:block"
+                                class="pointer-events-none absolute -top-12 left-full ml-10 hidden w-160 bg-[linear-gradient(105deg,#23CCED_0%,#318CE3_25%,#3A5DDB_45%,transparent_62%)] bg-clip-text font-mono text-xs leading-6 whitespace-pre text-transparent opacity-60 select-none xl:block"
                             >
                                 {eventLogDecalContent}
                             </pre>
