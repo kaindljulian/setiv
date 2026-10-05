@@ -34,14 +34,6 @@ export const samples: Sample[] = [
         result: "unsat",
     },
     {
-        file: "php_6_5.cnf",
-        label: "Pigeonhole 6 to 5",
-        note: "Six pigeons into five holes. One pigeon more than php_5_4.",
-        vars: 30,
-        clauses: 81,
-        result: "unsat",
-    },
-    {
         file: "ramsey_3_3_5.cnf",
         label: "Ramsey R(3,3), 5 vertices",
         note: "Describes a 5-vertex graph with no triangle and no independent set of size 3.",

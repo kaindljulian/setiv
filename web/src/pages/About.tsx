@@ -5,7 +5,6 @@ import { EventLog } from "@/components/EventLog";
 import { FormulaPanel } from "@/components/FormulaPanel";
 import { DemoRun, Figure } from "@/components/Guide/DemoRun";
 import { ImplicationPanel } from "@/components/ImplicationGraph/ImplicationPanel";
-import { LoadDiagnostics } from "@/components/LoadDiagnostics";
 import { Panel } from "@/components/Panel";
 import { Sidebar } from "@/components/Sidebar/Sidebar";
 import { StepBar } from "@/components/StepBar";
@@ -124,8 +123,8 @@ const eventLogDecalContent = `{"event":"decide","literal":-7,"level":3,"heuristi
 const fadeEnds =
     "linear-gradient(to bottom, transparent 0%, #000 14%, #000 80%, transparent 100%)";
 
-/** first learn event */
-const conflictStep = 338;
+/** learn event of the second conflict, the first with a backjumped branch */
+const conflictStep = 48;
 
 const toc: { id: string; label: string }[] = [
     { id: "protocol", label: "Event protocol" },
@@ -154,7 +153,7 @@ export function AboutPage() {
                 <Contents scroller={scroller} />
                 <div class="mx-auto flex w-full max-w-3xl min-w-0 flex-col gap-8">
                     <header class="flex flex-col gap-3">
-                        <h1 class="text-2xl font-bold">SETIV</h1>
+                        <h1 class="text-3xl font-bold">Setiv</h1>
                         <p>
                             A viewer for CDCL search traces. A SAT solver writes
                             an event protocol as JSON as it searches, this
@@ -240,31 +239,19 @@ export function AboutPage() {
                         </div>
                     </Section>
 
+                    <h1 class="text-3xl font-bold">Example</h1>
+                    <p>This example shows all of the different views.</p>
+                    <p>
+                        The formula is{" "}
+                        <code class="font-mono">php_4_3.cnf</code>, the
+                        pigeonhole formula, which encodes the problem of
+                        arranging four pigeons into three holes with one pigeon
+                        per hole (unsat).
+                    </p>
+
                     <DemoRun step={conflictStep}>
                         <div class="flex flex-col gap-8">
-                            <LoadDiagnostics />
-
-                            <section class="border-base-300 bg-base-100 rounded-box border p-4">
-                                <h2
-                                    class="mb-2 text-base font-semibold"
-                                    id="example_run"
-                                >
-                                    Example to illustrate the different
-                                    components
-                                </h2>
-                                <p>
-                                    Every view below is live and interactive.
-                                    They are all connected to the same run.
-                                    Moving the cursor updates all views.
-                                </p>
-                                <p class="mt-2">
-                                    This example run is: CaDiCaL on{" "}
-                                    <code class="font-mono">php_5_4</code>, the
-                                    pigeonhole formula for five pigeons and four
-                                    holes (unsat).
-                                </p>
-                            </section>
-
+                            {/* <LoadDiagnostics /> for debugging*/}
                             <Dimacs />
 
                             <Section id="chart" title="Decision level chart">
@@ -521,7 +508,7 @@ function Dimacs() {
     return (
         <div class="border-base-300 bg-base-200 rounded-box overflow-hidden border">
             <p class="border-base-300 text-base-content/60 border-b px-3 py-1.5 font-mono text-xs">
-                php_5_4.cnf
+                php_4_3.cnf
             </p>
             <pre class="max-h-64 overflow-auto px-3 py-2 font-mono text-[11px] leading-5">
                 {lines.join("\n")}

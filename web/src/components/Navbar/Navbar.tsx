@@ -13,7 +13,7 @@ import { ThemeToggle } from "./ThemeToggle";
 const pages = [
     { href: "/main", label: "Main", needsRun: true },
     { href: "/chart", label: "Chart", needsRun: true },
-    { href: "/about", label: "About", needsRun: false },
+    { href: "/help", label: "Help", needsRun: false },
 ] as const;
 
 export function Navbar() {

@@ -4,7 +4,7 @@ import { SolverProvider, useCursor, useSource } from "@/state/context";
 import type { ComponentChildren } from "preact";
 import { useEffect } from "preact/hooks";
 
-const logName = "php_5_4_cadical_events.jsonl";
+const logName = "php_4_3_cadical_events.jsonl";
 const logUrl = `${import.meta.env.BASE_URL}guide/${logName}`;
 
 /**

@@ -14,7 +14,7 @@ export function App() {
                 <Route path="/" component={EmptyState} />
                 <Route path="/main" component={SolverPage} />
                 <Route path="/chart" component={ChartPage} />
-                <Route path="/about" component={AboutPage} />
+                <Route path="/help" component={AboutPage} />
                 <Route default component={SolverPage} />
             </Router>
         </div>
