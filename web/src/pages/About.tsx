@@ -120,9 +120,6 @@ const eventLogDecalContent = `{"event":"decide","literal":-7,"level":3,"heuristi
 {"event":"backtrack","from_level":2,"to_level":0,"kind":"restart","reason":"restart"}
 {"event":"delete_clause","clause_id":38,"literals":[-6,3,9]}`;
 
-const fadeEnds =
-    "linear-gradient(to bottom, transparent 0%, #000 14%, #000 80%, transparent 100%)";
-
 /** learn event of the second conflict, the first with a backjumped branch */
 const conflictStep = 48;
 
@@ -155,10 +152,10 @@ export function AboutPage() {
                     <header class="flex flex-col gap-3">
                         <h1 class="text-3xl font-bold">Setiv</h1>
                         <p>
-                            A viewer for CDCL search traces. A SAT solver writes
-                            an event protocol as JSON as it searches, this
+                            A tracer and viewer for SAT solver search traces.
+                            The solver writes an event log as it searches, the
                             web-based viewer replays that log and uses it to
-                            visualize the SAT solvers search.
+                            visualize the search.
                         </p>
                     </header>
 
@@ -166,11 +163,10 @@ export function AboutPage() {
                         <div class="border-base-300 bg-base-100 rounded-box border p-4">
                             <h2 class="mb-2 font-semibold">Event protocol</h2>
                             <p>
-                                A JSON stream of what the solver did, written
-                                without reference to any specific solver's
-                                internals. A solver implements it by emitting an
-                                event where its own code already decides,
-                                propagates or learns.
+                                A JSON stream of what the solver did. It is
+                                designed to be solver agnostic. A solver
+                                implements it by emitting an event where its own
+                                code already decides, propagates, learns, etc.
                             </p>
                             <p class="mt-2 flex gap-3">
                                 <a
@@ -194,18 +190,18 @@ export function AboutPage() {
                         <div class="border-base-300 bg-base-100 rounded-box border p-4">
                             <h2 class="mb-2 font-semibold">Web-based viewer</h2>
                             <p>
-                                This app reads such a log, or produces one by
-                                running a solver in the browser, and replays it.
-                                At any step of the run you can read the trail,
-                                the clause database, the implication graph, the
-                                search tree, and more.
+                                This webapp reads such a log, or produces one by
+                                running a solver in the browser, and produces
+                                views based on it. At any step of the run you
+                                can vew the trail, the clause database, the
+                                implication graph, the search tree, and more.
                             </p>
                             <p class="mt-2">
                                 The{" "}
                                 <a href="#example_run" class="link">
                                     example below
                                 </a>{" "}
-                                demonstrates and explaines the different views.
+                                demonstrates the different views.
                             </p>
                         </div>
                     </div>
@@ -227,10 +223,7 @@ export function AboutPage() {
 
                             <pre
                                 aria-hidden="true"
-                                style={{
-                                    maskImage: fadeEnds,
-                                    WebkitMaskImage: fadeEnds,
-                                }}
+                                style="linear-gradient(to bottom, transparent 0%, #000 14%, #000 80%, transparent 100%)"
                                 class="pointer-events-none absolute -top-12 left-full ml-10 hidden w-160 bg-[linear-gradient(105deg,#23CCED_0%,#318CE3_25%,#3A5DDB_45%,transparent_62%)] bg-clip-text font-mono text-xs leading-6 whitespace-pre text-transparent opacity-60 select-none xl:block"
                             >
                                 {eventLogDecalContent}
@@ -239,7 +232,10 @@ export function AboutPage() {
                     </Section>
 
                     <h1 class="text-3xl font-bold">Example</h1>
-                    <p>This example shows all of the different views.</p>
+                    <p>
+                        This example is meant as an introduction and overview of
+                        all the different views and graphs.
+                    </p>
                     <p>
                         The formula is{" "}
                         <code class="font-mono">php_4_3.cnf</code>, the
@@ -255,19 +251,22 @@ export function AboutPage() {
 
                             <Section id="chart" title="Decision level chart">
                                 <p>
-                                    A global chart of decision level against
-                                    event index. Hover for the event details,
-                                    click to move the cursor.
+                                    A global chart of decision level (on the y
+                                    axis) against event index (on the x axis).
+                                    You can hover for the event details and
+                                    click to move the cursor there.
                                 </p>
                                 <ChartFigure />
                             </Section>
 
                             <Section id="stepbar" title="Step bar">
                                 <p>
-                                    The main cursor control is the step bar at
-                                    the bottom of the page. It shows the current
-                                    step and lets you jump to any other step,
-                                    either by clicking or dragging the handle.
+                                    The cursor is what controls the currently
+                                    displayed state. The main cursor control is
+                                    the step bar at the bottom of the page. It
+                                    shows the current step in the log and lets
+                                    you jump to any other step. By clicking or
+                                    dragging the handle or using the buttons.
                                 </p>
                             </Section>
 
@@ -276,10 +275,10 @@ export function AboutPage() {
                                 title="Trail and clause database"
                             >
                                 <p>
-                                    The trail at the current step with a level
-                                    and a reason per literal, and the clause
-                                    database split into original, learned and
-                                    deleted.
+                                    The trail at the current step with
+                                    corresponging decision level and reason
+                                    clause per literal. Also the clause database
+                                    split into original, learned and deleted.
                                 </p>
                                 <Figure class="h-120">
                                     <div class="border-base-300 bg-base-200 flex h-full w-80 flex-col overflow-hidden rounded border">
@@ -309,11 +308,10 @@ export function AboutPage() {
 
                             <Section id="graph" title="Implication graph">
                                 <p>
-                                    One node per assignment on the trail plus
-                                    the conflict node. Edges represent
-                                    propagations, labelled with the reason
-                                    clause. The literals on the learned clause
-                                    are highlighted.
+                                    Nodes represent literals on the trail. Edges
+                                    represent propagations, labelled with the
+                                    reason clause. The literals which ended up
+                                    on the learned clause are highlighted.
                                 </p>
                                 <Figure class="h-120">
                                     <ImplicationPanel />
@@ -322,10 +320,9 @@ export function AboutPage() {
 
                             <Section id="formula" title="Formula">
                                 <p>
-                                    The original clauses under the assignment at
-                                    the current step. Learned and deleted
-                                    clauses are not represented here, they are
-                                    in the sidebar.
+                                    The original CNF under the assignment at the
+                                    current step. Learned and deleted clauses
+                                    are not considered here.
                                 </p>
                                 <Figure>
                                     <FormulaPanel />
@@ -338,7 +335,10 @@ export function AboutPage() {
                                     <code class="font-mono"> inspect </code>
                                     events, which a solver emits at BCP level
                                     logging (see "Solver options" when creating
-                                    a run). Watched literals are outlined.
+                                    a run). With this option enabled every
+                                    clause inspection during BCP is logged. Not
+                                    very useful in this example, but watched
+                                    literals are outlined.
                                 </p>
                                 <Figure>
                                     <BcpPanel active />
@@ -347,7 +347,7 @@ export function AboutPage() {
 
                             <Section id="log" title="Event log">
                                 <p>
-                                    One row per event. Click a row to place the
+                                    The raw event log. Click a row to place the
                                     cursor at that event.
                                 </p>
                                 <Figure>
