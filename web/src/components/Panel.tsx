@@ -1,5 +1,5 @@
-import type { ComponentChildren } from "preact";
 import { cn } from "@/lib/cn";
+import type { ComponentChildren } from "preact";
 
 interface PanelProps {
     title: ComponentChildren;
@@ -17,7 +17,9 @@ export function Panel({ title, actions, fill = false, children }: PanelProps) {
             )}
         >
             <div class="border-base-300 bg-base-200 flex shrink-0 flex-wrap items-center justify-between gap-2 border-b px-3 py-1.5">
-                <h2 class="text-sm font-semibold">{title}</h2>
+                <h2 class="flex items-center gap-2 text-sm font-semibold">
+                    {title}
+                </h2>
                 {actions}
             </div>
             <div

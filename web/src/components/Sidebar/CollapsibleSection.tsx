@@ -4,6 +4,8 @@ import { cn } from "@/lib/cn";
 
 interface CollapsibleSectionProps {
     title: string;
+    /** bg-* class for the dot that keys the section to its color in the charts */
+    tone: string;
     badge?: ComponentChildren;
     open: boolean;
     onToggle: () => void;
@@ -12,6 +14,7 @@ interface CollapsibleSectionProps {
 
 export function CollapsibleSection({
     title,
+    tone,
     badge,
     open,
     onToggle,
@@ -39,6 +42,7 @@ export function CollapsibleSection({
                         open && "rotate-90",
                     )}
                 />
+                <span class={cn("size-2 shrink-0 rounded-full", tone)} />
                 <span class="flex-1 truncate">{title}</span>
                 {badge != null && (
                     <span class="badge badge-ghost badge-xs font-mono font-normal">

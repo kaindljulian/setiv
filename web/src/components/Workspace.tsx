@@ -50,7 +50,8 @@ export function Workspace() {
                             onClick={() => view.showTab(id)}
                             class={cn(
                                 "tab shadow-none",
-                                tab === id && "tab-active",
+                                tab === id &&
+                                    "tab-active text-primary-content [--tab-bg:var(--color-primary)]",
                             )}
                         >
                             {label}

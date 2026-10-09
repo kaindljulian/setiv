@@ -1,10 +1,49 @@
 @import "tailwindcss";
 
 @plugin "daisyui" {
-    themes:
-        light --default,
-        night --prefersdark;
+    themes: false;
     logs: false;
+}
+
+@plugin "daisyui/theme" {
+    name: "light";
+    default: true;
+    --color-base-100: oklch(99.5% 0.004 250);
+    --color-base-200: oklch(96.4% 0.013 250);
+    --color-base-300: oklch(90.5% 0.024 252);
+    --color-base-content: oklch(25% 0.05 265);
+    --color-primary: oklch(55% 0.19 258);
+    --color-primary-content: oklch(98% 0.01 258);
+    --color-secondary: oklch(70% 0.13 218);
+    --color-secondary-content: oklch(22% 0.05 240);
+    --color-accent: oklch(81% 0.16 84);
+    --color-accent-content: oklch(30% 0.08 60);
+    --color-neutral: oklch(22% 0.055 266);
+    --color-neutral-content: oklch(94% 0.012 255);
+    --color-info: oklch(70% 0.13 218);
+}
+
+@plugin "daisyui/theme" {
+    name: "night";
+    prefersdark: true;
+    --color-base-100: oklch(21% 0.045 266);
+    --color-base-200: oklch(17.5% 0.042 266);
+    --color-base-300: oklch(28% 0.05 264);
+    --color-primary: oklch(70% 0.15 245);
+    --color-primary-content: oklch(16% 0.04 260);
+    --color-secondary: oklch(80% 0.13 215);
+    --color-secondary-content: oklch(16% 0.04 230);
+    --color-accent: oklch(83% 0.15 84);
+    --color-accent-content: oklch(20% 0.05 70);
+}
+
+.setiv-brand-gradient {
+    background-image: linear-gradient(
+        90deg in oklch,
+        var(--color-primary),
+        var(--color-secondary),
+        var(--color-accent)
+    );
 }
 
 @theme {

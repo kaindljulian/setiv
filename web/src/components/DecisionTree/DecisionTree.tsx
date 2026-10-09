@@ -32,7 +32,7 @@ const propagationEdge: LegendItem = {
 const impliedNode: LegendItem = {
     shape: "circle",
     label: "+N = decision with BCP collapsed",
-    fill: colors.node,
+    fill: colors.decisionAccent,
 };
 
 function legendFor(folded: boolean): LegendItem[] {
@@ -224,7 +224,15 @@ export function DecisionTree({ tree, onExpand, onSelect }: Props) {
 
             sel.append("circle")
                 .attr("r", r)
-                .attr("class", cn(colors.node, "stroke-setiv-surface"));
+                .attr(
+                    "class",
+                    cn(
+                        d.node.kind === "decision"
+                            ? colors.decisionAccent
+                            : colors.node,
+                        "stroke-setiv-surface",
+                    ),
+                );
         });
 
         const newMaterializedNode = g

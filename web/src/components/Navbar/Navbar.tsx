@@ -21,14 +21,15 @@ export function Navbar() {
     const location = useLocation();
 
     return (
-        <header class="navbar border-base-300 bg-base-100 min-h-0 shrink-0 gap-2 border-b px-3 py-1.5">
+        <header class="navbar bg-base-100 relative min-h-0 shrink-0 gap-2 px-3 py-1.5">
+            <span class="setiv-brand-gradient pointer-events-none absolute inset-x-0 bottom-0 h-px opacity-50" />
             <div class="flex min-w-0 flex-1 items-center gap-2">
                 <h1
                     class="z-10 flex shrink-0 cursor-pointer items-center gap-2 text-lg font-semibold"
                     onClick={() => location.route("/")}
                 >
                     <img
-                        src="/icon.svg"
+                        src="/icon_cutout.svg"
                         alt=""
                         width="24"
                         height="24"
@@ -69,7 +70,10 @@ function PageNav() {
                         key={href}
                         href={href}
                         aria-current={path === href ? "page" : undefined}
-                        class={cn("btn btn-xs", path === href && "btn-active")}
+                        class={cn(
+                            "btn btn-xs",
+                            path === href ? "btn-primary" : "btn-ghost",
+                        )}
                     >
                         {label}
                     </a>

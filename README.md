@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="web/public/icon.svg" alt="" width="96" height="96" /><br />
+  <img src="web/public/icon_cutout.svg" alt="" width="96" height="96" /><br />
   Setiv
 </h1>
 

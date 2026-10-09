@@ -211,7 +211,6 @@ export function AboutPage() {
                     </div>
 
                     <Section id="protocol" title="Event protocol">
-                        <p>NDJSON, one event per line:</p>
                         <div class="relative mt-4">
                             <dl class="border-base-300 grid grid-cols-[auto_1fr] border-t">
                                 {protocolEvents.map(([name, fields]) => (
@@ -348,8 +347,8 @@ export function AboutPage() {
 
                             <Section id="log" title="Event log">
                                 <p>
-                                    One row per parsed event, as the solver
-                                    logged it. Click a row to jump there.
+                                    One row per event. Click a row to place the
+                                    cursor at that event.
                                 </p>
                                 <Figure>
                                     <Panel fill title="Event Log">

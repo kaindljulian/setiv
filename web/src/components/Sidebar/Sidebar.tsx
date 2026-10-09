@@ -87,6 +87,7 @@ export function Sidebar() {
 
             <CollapsibleSection
                 title="Trail"
+                tone="bg-setiv-decision"
                 badge={`${trailFiltered && open === "trail" ? `${trail.length}/` : ""}${state.trail.length} - @${state.decisionLevel}`}
                 {...section("trail")}
             >
@@ -102,6 +103,7 @@ export function Sidebar() {
 
             <CollapsibleSection
                 title="Original clauses"
+                tone="bg-secondary"
                 badge={badge("original")}
                 {...section("original")}
             >
@@ -115,6 +117,7 @@ export function Sidebar() {
 
             <CollapsibleSection
                 title="Learned"
+                tone="bg-setiv-learned"
                 badge={badge("learned")}
                 {...section("learned")}
             >
@@ -128,6 +131,7 @@ export function Sidebar() {
 
             <CollapsibleSection
                 title="Deleted"
+                tone="bg-base-content/30"
                 badge={badge("deleted")}
                 {...section("deleted")}
             >
