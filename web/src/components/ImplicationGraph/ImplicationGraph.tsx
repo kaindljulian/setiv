@@ -139,8 +139,6 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
                 .y((p: Point) => p.y)
                 .curve(d3.curveBasis);
 
-            const midOf = (e: RoutedEdge) => e.points[e.points.length >> 1];
-
             const edge = layer
                 .append("g")
                 .attr("class", cn("fill-none", colors.implicationEdge))
@@ -154,19 +152,36 @@ export function ImplicationGraph({ graph, state, onSelect }: Props) {
                 .attr("marker-end", isDeferredGraph ? null : "url(#arrow)")
                 .attr("d", (d: RoutedEdge) => lineGen(d.points));
 
+            const edgePaths = edge.nodes() as SVGPathElement[];
+            const midOf = (i: number) =>
+                edgePaths[i].getPointAtLength(
+                    edgePaths[i].getTotalLength() / 2,
+                );
+
             const edgeLabel = layer
                 .append("g")
-                .attr("class", cn(colors.edgeLabel, "font-mono cursor-pointer"))
+                .attr(
+                    "class",
+                    cn(
+                        colors.edgeLabel,
+                        colors.edgeLabelBackdrop,
+                        "font-mono cursor-pointer",
+                    ),
+                )
                 .selectAll("text")
                 .data(isDeferredGraph ? [] : edges)
                 .join("text")
                 .attr("font-size", 9)
                 .attr("text-anchor", "middle")
+                .attr("dominant-baseline", "central")
+                .attr("stroke-width", 3)
+                .attr("stroke-linejoin", "round")
+                .attr("paint-order", "stroke")
                 .attr("opacity", (d: RoutedEdge) =>
                     isNewEdge(d) ? 0 : edgeLabelOpacity,
                 )
-                .attr("x", (d: RoutedEdge) => midOf(d).x)
-                .attr("y", (d: RoutedEdge) => midOf(d).y - 1)
+                .attr("x", (_: RoutedEdge, i: number) => midOf(i).x)
+                .attr("y", (_: RoutedEdge, i: number) => midOf(i).y)
                 .text(
                     (d: RoutedEdge) =>
                         d.clauseId != null && d.clauseId >= 0

@@ -18,6 +18,7 @@ export const colors = {
     conflictLabel: "fill-setiv-conflict-label",
     implicationEdge: "stroke-setiv-ink",
     edgeLabel: "fill-setiv-ink",
+    edgeLabelBackdrop: "stroke-setiv-surface",
     arrow: "fill-setiv-ink",
     levelBadge: "fill-setiv-ink",
     treeEdge: "stroke-setiv-ink",
